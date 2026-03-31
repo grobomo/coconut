@@ -37,10 +37,31 @@ Extracted and modularized from:
 - [x] T017: Teams refresh token persistence
 - [x] T018: Classifier context window optimization
 - [x] T019: Health check CLI mode for K8s liveness probes
-- [ ] T020: Spec and tasks for polish (006-polish-and-ship)
-- [ ] T021: Dockerfile — single image, no external deps
-- [ ] T022: Update docker-compose to build from Dockerfile
-- [ ] T023: Metrics — uptime, token cost, messages processed
-- [ ] T024: README.md — quickstart, architecture, config reference
+- [x] T020: Spec and tasks for polish (006-polish-and-ship)
+- [x] T021: Dockerfile — single image, zero pip deps, HEALTHCHECK built-in
+- [x] T022: docker-compose builds from Dockerfile
+- [x] T023: Per-adapter metrics, poll counts, token cost estimation
+- [x] T024: README.md — quickstart, architecture, config reference
+
+## Session Handoff (2026-03-31 15:30 UTC)
+
+### Done this session (22 of 24 tasks complete)
+- T013-T014: RONE health check script, multi-adapter test suite (6 tests)
+- T015-T019: Hardening — LLM retry w/ backoff, Teams token persistence, classifier context limit, health CLI
+- T020-T024: Polish — Dockerfile, docker-compose update, per-adapter metrics + cost, README
+- 12 PRs merged (#5-#18), all squash-merged to main
+- 23 tests passing across 4 test suites
+
+### Blockers (unchanged)
+- **T011**: Needs user Signal phone number + EP group ID to register
+- **T012**: CCC fleet dispatcher hardcoded to altarr/boothapp — needs reconfiguration
+- **T013 execution**: Health check script ready but VPN required to reach RONE K8s
+
+### Next priorities (by impact)
+1. **T011 unblock**: Get a Signal phone number (Google Voice, Twilio, or spare SIM) to test real conversation flow end-to-end.
+2. **T012 unblock**: Modify CCC fleet dispatcher repo whitelist to include grobomo/coconut, then deploy.
+3. **Teams adapter live test**: Connect to hackathon chat and verify message flow.
+4. **Webhook adapter**: Generic HTTP webhook adapter for platforms without official APIs.
+5. **Rate limiting**: Per-adapter message rate limits to prevent LLM cost runaway.
 
 ## Status: In Progress
