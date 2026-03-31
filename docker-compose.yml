@@ -1,0 +1,38 @@
+## Coconut + Signal — docker-compose deployment
+## Usage:
+##   1. Copy config/coconut.env.example to coconut.env and fill in values
+##   2. docker-compose up -d
+##   3. Register Signal number: bash scripts/signal-register.sh +PHONE
+##   4. Coconut starts polling automatically after registration
+
+services:
+  signal-api:
+    image: bbernhard/signal-cli-rest-api:latest
+    environment:
+      - MODE=json-rpc
+    ports:
+      - "${SIGNAL_API_PORT:-8080}:8080"
+    volumes:
+      - signal-data:/home/.local/share/signal-cli
+    restart: unless-stopped
+
+  coconut:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - .:/app:ro
+      - coconut-data:/app/data
+    env_file:
+      - coconut.env
+    environment:
+      - COCONUT_ADAPTER_SIGNAL_ENABLED=true
+      - COCONUT_SIGNAL_CLI_URL=http://signal-api:8080
+      - COCONUT_DATA_DIR=/app/data
+    command: python3 coconut.py
+    depends_on:
+      - signal-api
+    restart: unless-stopped
+
+volumes:
+  signal-data:
+  coconut-data:
