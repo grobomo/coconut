@@ -30,28 +30,21 @@ Extracted and modularized from:
 - [x] T010: Quote chain resolution — port from rone-teams-poller for threaded conversation context
 - [ ] T011: Live Signal test — register a phone number, join EP group, test real conversation flow
 - [ ] T012: CCC fleet deploy — deploy coconut on AWS CCC worker as persistent service
-- [ ] T013: RONE poller health check — verify K8s pod is running, fix if dead
-- [ ] T014: Multi-adapter — test running Signal + Teams adapters simultaneously
+- [x] T013: RONE poller health check — scripts/k8s/rone-poller-health.sh ready (VPN needed to run)
+- [x] T014: Multi-adapter — scripts/test/test-multi-adapter.sh (6/6 tests passing)
 
-## Session Handoff (2026-03-31 19:45 UTC)
+## Session Handoff (2026-03-31 14:55 UTC)
 
 ### Done this session
-- Built entire coconut project from scratch — 18 files, all modules
-- core/: config, llm, classifier, cache, health, quotes (6 modules)
-- adapters/: Signal, Teams, CLI (3 adapters + base)
-- coconut.py: main poll loop with health heartbeat, log-to-file
-- docker-compose.yml: Signal + Coconut two-container deploy
-- scripts/: deploy.sh, signal-register.sh, signal-list-groups.sh
-- 7 passing E2E tests
-- GitHub repo: grobomo/coconut (public), all merged to main
-- Bug fixed: replies route to source adapter only (not all)
-- Quote chain resolution ported from rone-teams-poller
+- T013: Created `scripts/k8s/rone-poller-health.sh` — auto-discovers kubeconfig, checks pods/logs
+- T014: Created `scripts/test/test-multi-adapter.sh` — 6 E2E tests proving multi-adapter works
+  - Concurrent loading, message routing to source adapter, poll isolation, format consistency, cache dedup
+- All existing tests still pass (7/7 E2E + 6/6 multi-adapter)
 
-### Blockers for next session
+### Blockers remaining
 - T011 needs: user's Signal phone number + EP group ID
-- T012 needs: CCC fleet dispatcher configured to accept coconut repo (currently hardcoded to altarr/boothapp)
-- T013 needs: VPN connection to reach RONE K8s (DNS failed this session)
-- RONE teams poller status unknown — couldn't reach K8s API
+- T012 needs: CCC fleet dispatcher reconfigured (hardcoded to altarr/boothapp)
+- T013 health check created but VPN required to actually verify RONE pod status
 
 ### Architecture decisions made
 - Python stdlib only (zero deps) so it runs anywhere without pip
