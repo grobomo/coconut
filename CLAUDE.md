@@ -11,11 +11,13 @@ core/
   llm.py            Anthropic API client (stdlib only)
   classifier.py     Semantic message classifier (REPLY/RELAY/IGNORE)
   cache.py          Rolling message cache with archiving
+  ratelimit.py      Per-adapter sliding window rate limiter
 adapters/
   base.py           Abstract adapter interface
   signal_adapter.py Signal via signal-cli REST API
   teams_adapter.py  Teams via MS Graph API
   cli_adapter.py    stdin/stdout for testing
+  webhook_adapter.py HTTP server for generic integrations
 config/
   coconut.env.example  Example configuration
   system-prompt.md     Default persona

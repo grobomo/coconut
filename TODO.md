@@ -42,21 +42,21 @@ Extracted and modularized from:
 - [x] T022: docker-compose builds from Dockerfile
 - [x] T023: Per-adapter metrics, poll counts, token cost estimation
 - [x] T024: README.md — quickstart, architecture, config reference
+- [x] T025: Spec and tasks for webhook adapter + rate limiting (007-webhook-ratelimit)
+- [x] T026: Webhook adapter — HTTP server for inbound/outbound messages
+- [x] T027: Webhook adapter E2E tests (7/7 passing)
+- [x] T028: Per-adapter rate limiter — sliding window, configurable via env vars
+- [x] T029: Rate limit tests (8/8 passing)
 
-- [ ] T025: Spec and tasks for webhook adapter + rate limiting (007-webhook-ratelimit)
-- [ ] T026: Webhook adapter — HTTP server for inbound/outbound messages
-- [ ] T027: Webhook adapter E2E tests
-- [ ] T028: Per-adapter rate limiter — sliding window, configurable via env vars
-- [ ] T029: Rate limit tests — throttling and burst handling
+## Session Handoff (2026-03-31 20:00 UTC)
 
-## Session Handoff (2026-03-31 15:30 UTC)
-
-### Done this session (22 of 24 tasks complete)
-- T013-T014: RONE health check script, multi-adapter test suite (6 tests)
-- T015-T019: Hardening — LLM retry w/ backoff, Teams token persistence, classifier context limit, health CLI
-- T020-T024: Polish — Dockerfile, docker-compose update, per-adapter metrics + cost, README
-- 12 PRs merged (#5-#18), all squash-merged to main
-- 23 tests passing across 4 test suites
+### Done this session (27 of 29 tasks complete)
+- T025-T029: Webhook adapter + rate limiter (spec 007)
+  - Webhook adapter: HTTP server, HMAC-SHA256 auth, callback URLs, health endpoint
+  - Rate limiter: sliding window per adapter, configurable window/max via env vars
+  - Integrated into main loop with rate limit stats in health.json
+- 4 PRs merged (#20-#23), all squash-merged to main
+- 37 tests passing across 6 test suites
 
 ### Blockers (unchanged)
 - **T011**: Needs user Signal phone number + EP group ID to register
@@ -67,7 +67,7 @@ Extracted and modularized from:
 1. **T011 unblock**: Get a Signal phone number (Google Voice, Twilio, or spare SIM) to test real conversation flow end-to-end.
 2. **T012 unblock**: Modify CCC fleet dispatcher repo whitelist to include grobomo/coconut, then deploy.
 3. **Teams adapter live test**: Connect to hackathon chat and verify message flow.
-4. **Webhook adapter**: Generic HTTP webhook adapter for platforms without official APIs.
-5. **Rate limiting**: Per-adapter message rate limits to prevent LLM cost runaway.
+4. **Discord adapter**: Similar pattern to webhook, uses Discord bot API.
+5. **Conversation memory**: Persistent context across restarts (beyond cache).
 
 ## Status: In Progress
