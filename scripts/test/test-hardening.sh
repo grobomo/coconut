@@ -263,5 +263,47 @@ shutil.rmtree(test_dir, ignore_errors=True)
 print('  PASS: --health exits 0 for fresh, 1 for stale')
 "
 
+# Test 8: Metrics — adapter stats, cost estimation (T023)
+echo "Test 8: Metrics and cost tracking..."
+python3 -c "
+import shutil, json
+from core.health import HealthWriter, estimate_cost
+
+test_dir = '/tmp/coconut-metrics-test'
+shutil.rmtree(test_dir, ignore_errors=True)
+
+hw = HealthWriter(data_dir=test_dir)
+
+# Record adapter polls
+hw.record_poll('signal', message_count=3)
+hw.record_poll('teams', message_count=0)
+hw.record_poll('signal', message_count=1)
+hw.record_adapter_error('teams')
+
+assert hw.polls == 3, f'Expected 3 polls, got {hw.polls}'
+assert hw.adapter_stats['signal']['polls'] == 2
+assert hw.adapter_stats['signal']['messages'] == 4
+assert hw.adapter_stats['teams']['errors'] == 1
+assert hw.errors == 1
+
+# Cost estimation
+usage = {'input_tokens': 1000, 'output_tokens': 100}
+cost = estimate_cost(usage)
+expected = 1000 * 0.80 / 1_000_000 + 100 * 4.00 / 1_000_000
+assert abs(cost - expected) < 0.000001, f'Cost {cost} != {expected}'
+
+# Health file includes metrics
+hw.update(extra={'usage': usage})
+with open(test_dir + '/health.json') as f:
+    health = json.load(f)
+assert 'adapters' in health
+assert 'cost_usd' in health
+assert health['polls'] == 3
+assert health['adapters']['signal']['messages'] == 4
+
+shutil.rmtree(test_dir, ignore_errors=True)
+print('  PASS: adapter stats, polls, cost estimation all correct')
+"
+
 echo ""
 echo "=== HARDENING TESTS COMPLETE ==="
