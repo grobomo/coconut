@@ -8,3 +8,4 @@ continuous-claude.log
 data/
 *.log
 .test-results/
+SESSION_STATE.md
