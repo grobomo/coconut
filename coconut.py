@@ -69,6 +69,11 @@ def _load_adapters(cfg):
         from adapters.cli_adapter import CLIAdapter
         adapters.append(CLIAdapter(cfg))
         _log('info', 'CLI adapter enabled')
+    if cfg.get('webhook_enabled'):
+        from adapters.webhook_adapter import WebhookAdapter
+        adapters.append(WebhookAdapter(cfg))
+        _log('info', 'Webhook adapter enabled',
+             port=cfg.get('webhook_port', 8000))
     return adapters
 
 
