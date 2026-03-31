@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+coconut.env
+*.log
+.DS_Store
+continuous-claude.log
