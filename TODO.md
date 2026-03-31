@@ -51,33 +51,14 @@ Extracted and modularized from:
 - [x] T031: GitHub Actions CI — test workflow + secret scan fix
 - [x] T032: Fix secret scan false positive in README
 
-## Session Handoff (2026-03-31 21:30 UTC)
+- [x] T033: Log rotation — size-based rotation for coconut.log (stdlib only)
+- [x] T034: Conversation memory — already works via cache.json persistence (no code needed)
+- [x] T035: CLI interactive mode — msvcrt.kbhit() on Windows, threaded pipe reader
+- [x] T036: Fix multi-adapter test hang — CLI poll blocks on pipe stdin in test harness
+- [ ] T037: Update docs — CLAUDE.md, README, TODO with new modules and test counts
 
-### Done this session (30 of 32 tasks complete)
-- T025-T029: Webhook adapter + per-adapter rate limiter (spec 007)
-  - Webhook: HTTP server, HMAC-SHA256 auth, callback URLs, health endpoint, 64KB body limit
-  - Rate limiter: sliding window per adapter, configurable window/max via env vars
-  - Integrated into main loop with rate limit stats in health.json
-- T030: Hardened webhook (body size limit, graceful adapter shutdown on SIGTERM)
-- T031-T032: GitHub Actions CI (test runner + secret scan), both green
-- 10 PRs merged (#20-#29), all squash-merged to main
-- 38 tests passing across 6 test suites, CI green on GitHub
-- Cleaned up 20+ stale remote branches
-
-### CI Status
-- `.github/workflows/test.yml` — runs all 6 test suites on push/PR to main (passing)
-- `.github/workflows/secret-scan.yml` — scans for API keys, cloud creds, hardcoded IPs, PII (passing)
-
-### Blockers (unchanged)
-- **T011**: Needs user Signal phone number + EP group ID to register
-- **T012**: CCC fleet dispatcher hardcoded to altarr/boothapp — needs reconfiguration
-
-### Next priorities (by impact)
-1. **T011 unblock**: Get a Signal phone number (Google Voice, Twilio, or spare SIM) to test real conversation flow end-to-end
-2. **T012 unblock**: Modify CCC fleet dispatcher repo whitelist to include grobomo/coconut, then deploy
-3. **Teams adapter live test**: Connect to hackathon chat and verify message flow
-4. **Conversation memory**: Persistent context across restarts (beyond rolling cache) — would let coconut recall previous conversations
-5. **Discord adapter**: Similar pattern to webhook, uses Discord bot API — expands platform reach
-6. **Log rotation**: coconut.log grows unbounded — add size-based rotation
+## Blocked (external deps)
+- [ ] T011: Live Signal test — needs user phone number + EP group ID
+- [ ] T012: CCC fleet deploy — needs dispatcher repo whitelist update
 
 ## Status: In Progress
