@@ -1,0 +1,10 @@
+archive/
+*.pyc
+__pycache__/
+.env
+coconut.env
+config/secrets/
+continuous-claude.log
+data/
+*.log
+.test-results/
