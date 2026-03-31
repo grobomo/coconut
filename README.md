@@ -16,7 +16,7 @@ Reusable AI chat assistant that monitors messaging platforms, classifies message
 ```bash
 # CLI mode (local testing)
 COCONUT_ADAPTER_CLI_ENABLED=true \
-ANTHROPIC_API_KEY=sk-ant-... \
+ANTHROPIC_API_KEY=your-api-key \
 python coconut.py
 
 # Docker with Signal
