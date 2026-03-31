@@ -28,6 +28,8 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 
 from adapters.base import BaseAdapter, Message
 
+MAX_BODY_SIZE = 1024 * 64  # 64KB max inbound payload
+
 
 class WebhookAdapter(BaseAdapter):
     """HTTP webhook adapter for generic integrations."""
@@ -60,6 +62,9 @@ class WebhookAdapter(BaseAdapter):
                 length = int(self.headers.get('Content-Length', 0))
                 if length == 0:
                     self.send_error(400, 'Empty body')
+                    return
+                if length > MAX_BODY_SIZE:
+                    self.send_error(413, 'Payload too large')
                     return
 
                 body = self.rfile.read(length)

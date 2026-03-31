@@ -241,6 +241,14 @@ def main():
         if not _shutdown:
             time.sleep(poll_interval)
 
+    # Graceful adapter shutdown (webhook HTTP server, etc.)
+    for adapter in adapters:
+        if hasattr(adapter, 'shutdown'):
+            try:
+                adapter.shutdown()
+            except Exception:
+                pass
+
     health.update(extra={'status': 'stopped', 'usage': llm.get_usage()})
     _log('info', 'Coconut stopped', usage=llm.get_usage())
     if _log_file:
