@@ -143,9 +143,10 @@ def main():
                 for m in msgs:
                     msg_source[m.message_id] = adapter
                 new_messages.extend(msgs)
+                health.record_poll(adapter.name, len(msgs))
             except Exception as e:
                 _log('error', f'Poll error ({adapter.name})', error=str(e))
-                health.errors += 1
+                health.record_adapter_error(adapter.name)
 
         health.update(extra={'usage': llm.get_usage()})
 
