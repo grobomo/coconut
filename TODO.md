@@ -32,10 +32,15 @@ Extracted and modularized from:
 - [ ] T012: CCC fleet deploy — deploy coconut on AWS CCC worker as persistent service
 - [x] T013: RONE poller health check — scripts/k8s/rone-poller-health.sh ready (VPN needed to run)
 - [x] T014: Multi-adapter — scripts/test/test-multi-adapter.sh (6/6 tests passing)
-- [ ] T015: Spec and tasks for hardening (005-harden-coconut)
-- [ ] T016: LLM retry with exponential backoff on transient errors
-- [ ] T017: Teams refresh token persistence
-- [ ] T018: Classifier context window optimization
-- [ ] T019: Health check CLI mode for K8s liveness probes
+- [x] T015: Spec and tasks for hardening (005-harden-coconut)
+- [x] T016: LLM retry with exponential backoff on transient errors
+- [x] T017: Teams refresh token persistence
+- [x] T018: Classifier context window optimization
+- [x] T019: Health check CLI mode for K8s liveness probes
+- [ ] T020: Spec and tasks for polish (006-polish-and-ship)
+- [ ] T021: Dockerfile — single image, no external deps
+- [ ] T022: Update docker-compose to build from Dockerfile
+- [ ] T023: Metrics — uptime, token cost, messages processed
+- [ ] T024: README.md — quickstart, architecture, config reference
 
 ## Status: In Progress
