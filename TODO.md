@@ -25,27 +25,39 @@ Extracted and modularized from:
 - [x] T005: Deploy script — single `scripts/deploy.sh` that launches coconut on CCC
 - [x] T006: System prompt & persona — configurable identity, domain knowledge (TrendAI Technical Advisor)
 - [x] T007: E2E test — scripts/test/test-coconut.sh exercises full pipeline with CLI adapter
-- [ ] T008: Signal deployment — set up signal-cli-rest-api, register number, connect to EP group
+- [x] T008: Signal deployment — docker-compose.yml, signal-register.sh, signal-list-groups.sh (merged to main)
 - [x] T009: Harden — health writer, log-to-file, fix reply-to-all-adapters bug
 - [x] T010: Quote chain resolution — port from rone-teams-poller for threaded conversation context
+- [ ] T011: Live Signal test — register a phone number, join EP group, test real conversation flow
+- [ ] T012: CCC fleet deploy — deploy coconut on AWS CCC worker as persistent service
+- [ ] T013: RONE poller health check — verify K8s pod is running, fix if dead
+- [ ] T014: Multi-adapter — test running Signal + Teams adapters simultaneously
 
-## Session Handoff (2026-03-31)
+## Session Handoff (2026-03-31 19:45 UTC)
 
 ### Done this session
-- Built entire coconut project from scratch — 15 files, all core modules
+- Built entire coconut project from scratch — 18 files, all modules
 - core/: config, llm, classifier, cache, health, quotes (6 modules)
 - adapters/: Signal, Teams, CLI (3 adapters + base)
 - coconut.py: main poll loop with health heartbeat, log-to-file
-- scripts/deploy.sh: single-command deploy (local or --ccc mode)
+- docker-compose.yml: Signal + Coconut two-container deploy
+- scripts/: deploy.sh, signal-register.sh, signal-list-groups.sh
 - 7 passing E2E tests
-- GitHub repo created: grobomo/coconut (public)
-- Bug fixed: replies now route to source adapter only (not all)
+- GitHub repo: grobomo/coconut (public), all merged to main
+- Bug fixed: replies route to source adapter only (not all)
 - Quote chain resolution ported from rone-teams-poller
 
-### Remaining
-- T008: Signal deployment — need signal-cli-rest-api running + user's Signal group ID with EP
-- Merge 001-T001-scaffold branch → 001-build-coconut → main
-- Test with real Anthropic API key (all tests use mocks so far)
-- RONE teams poller may be dead — user mentioned "haven't checked if it still exists"
+### Blockers for next session
+- T011 needs: user's Signal phone number + EP group ID
+- T012 needs: CCC fleet dispatcher configured to accept coconut repo (currently hardcoded to altarr/boothapp)
+- T013 needs: VPN connection to reach RONE K8s (DNS failed this session)
+- RONE teams poller status unknown — couldn't reach K8s API
+
+### Architecture decisions made
+- Python stdlib only (zero deps) so it runs anywhere without pip
+- signal-cli-rest-api via Docker (bbernhard/signal-cli-rest-api) for Signal integration
+- Adapters are plugins — add new platforms by implementing poll()/send()
+- Every value from env vars with COCONUT_* prefix
+- Secret scan CI workflow catches hardcoded values before push
 
 ## Status: In Progress
