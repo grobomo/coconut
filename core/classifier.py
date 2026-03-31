@@ -8,6 +8,8 @@ Classifies messages as:
 import json
 from core import llm
 
+MAX_CLASSIFY_CONTEXT = 15
+
 CLASSIFICATION_PROMPT = """You are a message classifier. You receive a JSON array of recent chat messages (oldest first). Each has: sender, text, timestamp.
 
 Classify ONLY messages marked "classify": true. Use surrounding messages as context.
@@ -53,7 +55,10 @@ def classify(messages, api_key, model='claude-haiku-4-5-20251001'):
     if not to_classify:
         return []
 
-    prompt = f"{CLASSIFICATION_PROMPT}\n\nMessages:\n{json.dumps(messages, indent=2)}"
+    # Limit context to most recent N messages to reduce token usage
+    context_msgs = messages[-MAX_CLASSIFY_CONTEXT:] if len(messages) > MAX_CLASSIFY_CONTEXT else messages
+
+    prompt = f"{CLASSIFICATION_PROMPT}\n\nMessages:\n{json.dumps(context_msgs, indent=2)}"
 
     response = llm.chat(
         api_key=api_key,
