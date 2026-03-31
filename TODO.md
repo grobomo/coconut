@@ -18,12 +18,15 @@ Extracted and modularized from:
 
 ## Tasks
 
-- [ ] T001: Project scaffold — .github, config, gitignore, publish.json, CLAUDE.md
-- [ ] T002: Core module — config loader, LLM client, message classifier, response generator
-- [ ] T003: Adapters — Signal adapter (signal-cli REST API), Teams adapter (Graph API), CLI adapter
-- [ ] T004: Polling loop — main event loop with 3s poll, message cache, semantic analysis
-- [ ] T005: Deploy script — single `scripts/deploy.sh` that launches coconut on CCC
-- [ ] T006: System prompt & persona — configurable identity, domain knowledge (TrendAI Technical Advisor)
-- [ ] T007: E2E test — scripts/test/test-coconut.sh exercises full pipeline with CLI adapter
+- [x] T001: Project scaffold — .github, config, gitignore, publish.json, CLAUDE.md
+- [x] T002: Core module — config loader, LLM client, message classifier, response generator
+- [x] T003: Adapters — Signal adapter (signal-cli REST API), Teams adapter (Graph API), CLI adapter
+- [x] T004: Polling loop — main event loop with 3s poll, message cache, semantic analysis
+- [x] T005: Deploy script — single `scripts/deploy.sh` that launches coconut on CCC
+- [x] T006: System prompt & persona — configurable identity, domain knowledge (TrendAI Technical Advisor)
+- [x] T007: E2E test — scripts/test/test-coconut.sh exercises full pipeline with CLI adapter
 
-## Status: In Progress
+## Status: Complete
+
+All tasks implemented in PR #1 (feat/build-coconut -> 001-build-coconut).
+E2E tests: 6/6 passing. Zero dependencies (Python stdlib only).
