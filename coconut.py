@@ -15,6 +15,7 @@ import urllib.error
 
 from core import config, cache, classifier, llm
 from core.health import HealthWriter
+from core.logrotate import RotatingLog
 from core.ratelimit import RateLimiter
 from adapters.base import Message
 
@@ -51,8 +52,9 @@ def _init_log_file(data_dir):
     log_path = os.environ.get('COCONUT_LOG_FILE', '')
     if not log_path:
         log_path = os.path.join(data_dir, 'coconut.log')
-    os.makedirs(os.path.dirname(log_path) or '.', exist_ok=True)
-    _log_file = open(log_path, 'a')
+    max_bytes = int(os.environ.get('COCONUT_LOG_MAX_BYTES', 5 * 1024 * 1024))
+    backups = int(os.environ.get('COCONUT_LOG_BACKUPS', 3))
+    _log_file = RotatingLog(log_path, max_bytes=max_bytes, backups=backups)
 
 
 def _load_adapters(cfg):
