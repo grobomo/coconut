@@ -1,0 +1,13 @@
+.git
+.github
+archive
+data
+specs
+scripts
+*.md
+*.log
+*.env
+__pycache__
+.test-results
+SESSION_STATE.md
+docker-compose.yml
