@@ -122,8 +122,60 @@ assert 401 not in _RETRYABLE_CODES, '401 should not be retryable'
 print('  PASS: retryable codes correct')
 "
 
-# Test 4: Classifier context limiting (T018)
-echo "Test 4: Classifier context window..."
+# Test 4: Teams refresh token persistence (T017)
+echo "Test 4: Token persistence..."
+python3 -c "
+import os, shutil
+test_dir = '/tmp/coconut-token-test'
+shutil.rmtree(test_dir, ignore_errors=True)
+os.makedirs(test_dir, exist_ok=True)
+os.environ['COCONUT_DATA_DIR'] = test_dir
+os.environ['COCONUT_ADAPTER_TEAMS_ENABLED'] = 'true'
+os.environ['COCONUT_TEAMS_CHAT_ID'] = 'test'
+os.environ['COCONUT_TEAMS_TENANT_ID'] = 'test'
+os.environ['COCONUT_TEAMS_CLIENT_ID'] = 'test'
+os.environ['COCONUT_TEAMS_REFRESH_TOKEN'] = 'initial-token'
+os.environ['ANTHROPIC_API_KEY'] = 'test-key'
+
+from core import config
+cfg = config.load()
+from adapters.teams_adapter import TeamsAdapter
+adapter = TeamsAdapter(cfg)
+
+# Initial token loaded
+assert adapter._refresh_token == 'initial-token'
+
+# Simulate token rotation
+adapter._persist_refresh_token('rotated-token-abc123')
+assert adapter._refresh_token == 'rotated-token-abc123'
+
+# Verify file was written
+token_file = os.path.join(test_dir, 'teams_refresh_token')
+assert os.path.exists(token_file), 'Token file not created'
+with open(token_file) as f:
+    saved = f.read()
+assert saved == 'rotated-token-abc123', f'Token file wrong: {saved}'
+
+# New adapter instance loads persisted token
+os.environ['COCONUT_TEAMS_REFRESH_TOKEN'] = ''  # clear env
+cfg2 = config.load()
+adapter2 = TeamsAdapter(cfg2)
+assert adapter2._refresh_token == 'rotated-token-abc123', f'Got: {adapter2._refresh_token}'
+
+# Same token doesn't re-write (no-op)
+import time
+mtime_before = os.path.getmtime(token_file)
+time.sleep(0.05)
+adapter2._persist_refresh_token('rotated-token-abc123')
+mtime_after = os.path.getmtime(token_file)
+assert mtime_before == mtime_after, 'Should not rewrite same token'
+
+shutil.rmtree(test_dir, ignore_errors=True)
+print('  PASS: token persistence works (write, reload, no-op on same)')
+"
+
+# Test 5: Classifier context limiting (T018)
+echo "Test 5: Classifier context window..."
 python3 -c "
 from core.classifier import MAX_CLASSIFY_CONTEXT
 assert MAX_CLASSIFY_CONTEXT <= 20, f'Context too large: {MAX_CLASSIFY_CONTEXT}'
@@ -131,8 +183,8 @@ assert MAX_CLASSIFY_CONTEXT >= 10, f'Context too small: {MAX_CLASSIFY_CONTEXT}'
 print(f'  PASS: classifier context limited to {MAX_CLASSIFY_CONTEXT} messages')
 " 2>/dev/null || echo "  SKIP: T018 not yet implemented"
 
-# Test 5: Health check CLI (T019)
-echo "Test 5: Health check CLI..."
+# Test 6: Health check CLI (T019)
+echo "Test 6: Health check CLI..."
 python3 -c "
 import subprocess, os, json, shutil
 
