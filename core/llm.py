@@ -28,11 +28,14 @@ def _add_auth(req, api_key):
     req.add_header('Content-Type', 'application/json')
 
 
+_RETRYABLE_CODES = (429, 500, 502, 503, 529)
+
+
 def chat(api_key, system_prompt, user_message, model='claude-haiku-4-5-20251001',
-         max_tokens=512):
+         max_tokens=512, retries=3):
     """Send a message to the Anthropic API. Returns response text.
 
-    Raises on HTTP or network errors.
+    Retries on transient errors (429, 500, 502, 503, 529) with exponential backoff.
     """
     body = json.dumps({
         'model': model,
@@ -41,18 +44,31 @@ def chat(api_key, system_prompt, user_message, model='claude-haiku-4-5-20251001'
         'messages': [{'role': 'user', 'content': user_message}],
     }).encode()
 
-    req = urllib.request.Request(API_URL, data=body, method='POST')
-    _add_auth(req, api_key)
-
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        result = json.loads(resp.read())
-
-    usage = result.get('usage', {})
-    _usage['input_tokens'] += usage.get('input_tokens', 0)
-    _usage['output_tokens'] += usage.get('output_tokens', 0)
-    _usage['calls'] += 1
-
-    return result['content'][0]['text'].strip()
+    last_err = None
+    for attempt in range(retries):
+        req = urllib.request.Request(API_URL, data=body, method='POST')
+        _add_auth(req, api_key)
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                result = json.loads(resp.read())
+            usage = result.get('usage', {})
+            _usage['input_tokens'] += usage.get('input_tokens', 0)
+            _usage['output_tokens'] += usage.get('output_tokens', 0)
+            _usage['calls'] += 1
+            return result['content'][0]['text'].strip()
+        except urllib.error.HTTPError as e:
+            last_err = e
+            if e.code in _RETRYABLE_CODES and attempt < retries - 1:
+                time.sleep(2 ** attempt + 1)
+                continue
+            raise
+        except (urllib.error.URLError, OSError) as e:
+            last_err = e
+            if attempt < retries - 1:
+                time.sleep(2 ** attempt)
+                continue
+            raise
+    raise last_err
 
 
 def build_system_prompt(config):
