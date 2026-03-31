@@ -74,6 +74,17 @@ def load(env_file=None):
 
         'cli_enabled': _bool('COCONUT_ADAPTER_CLI_ENABLED'),
 
+        'webhook_enabled': _bool('COCONUT_ADAPTER_WEBHOOK_ENABLED'),
+        'webhook_port': _int('COCONUT_WEBHOOK_PORT', 8000),
+        'webhook_path': _get('COCONUT_WEBHOOK_PATH', '/webhook/inbound'),
+        'webhook_secret': _get('COCONUT_WEBHOOK_SECRET', ''),
+        'webhook_callback_url': _get('COCONUT_WEBHOOK_CALLBACK_URL', ''),
+
+        # Rate limiting
+        'rate_limit_enabled': _bool('COCONUT_RATE_LIMIT_ENABLED', True),
+        'rate_limit_window': _int('COCONUT_RATE_LIMIT_WINDOW', 60),
+        'rate_limit_max': _int('COCONUT_RATE_LIMIT_MAX', 10),
+
         # Persona
         'system_prompt_file': _get('COCONUT_SYSTEM_PROMPT_FILE', 'config/system-prompt.md'),
 

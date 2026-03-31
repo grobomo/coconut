@@ -15,6 +15,7 @@ import urllib.error
 
 from core import config, cache, classifier, llm
 from core.health import HealthWriter
+from core.ratelimit import RateLimiter
 from adapters.base import Message
 
 _shutdown = False
@@ -69,6 +70,11 @@ def _load_adapters(cfg):
         from adapters.cli_adapter import CLIAdapter
         adapters.append(CLIAdapter(cfg))
         _log('info', 'CLI adapter enabled')
+    if cfg.get('webhook_enabled'):
+        from adapters.webhook_adapter import WebhookAdapter
+        adapters.append(WebhookAdapter(cfg))
+        _log('info', 'Webhook adapter enabled',
+             port=cfg.get('webhook_port', 8000))
     return adapters
 
 
@@ -124,6 +130,11 @@ def main():
     )
 
     health = HealthWriter(data_dir=data_dir)
+    rate_limiter = RateLimiter(
+        window_seconds=cfg.get('rate_limit_window', 60),
+        max_per_window=cfg.get('rate_limit_max', 10),
+        enabled=cfg.get('rate_limit_enabled', True),
+    )
     poll_interval = cfg.get('poll_interval', 3)
     model = cfg.get('model', 'claude-haiku-4-5-20251001')
 
@@ -148,7 +159,10 @@ def main():
                 _log('error', f'Poll error ({adapter.name})', error=str(e))
                 health.record_adapter_error(adapter.name)
 
-        health.update(extra={'usage': llm.get_usage()})
+        health.update(extra={
+            'usage': llm.get_usage(),
+            'rate_limits': rate_limiter.stats(),
+        })
 
         if not new_messages:
             if not _shutdown:
@@ -189,6 +203,11 @@ def main():
                  reason=cl.get('reason', ''))
 
             if action == 'REPLY' and source_adapter:
+                if not rate_limiter.allow(source_adapter.name):
+                    _log('warn', 'Rate limited',
+                         adapter=source_adapter.name,
+                         remaining=rate_limiter.remaining(source_adapter.name))
+                    continue
                 recent = context[:10]
                 ctx_text = '\n'.join(
                     f"  {m.get('sender', '?')}: {m.get('text', '')}"

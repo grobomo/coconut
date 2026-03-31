@@ -43,6 +43,12 @@ Extracted and modularized from:
 - [x] T023: Per-adapter metrics, poll counts, token cost estimation
 - [x] T024: README.md — quickstart, architecture, config reference
 
+- [ ] T025: Spec and tasks for webhook adapter + rate limiting (007-webhook-ratelimit)
+- [ ] T026: Webhook adapter — HTTP server for inbound/outbound messages
+- [ ] T027: Webhook adapter E2E tests
+- [ ] T028: Per-adapter rate limiter — sliding window, configurable via env vars
+- [ ] T029: Rate limit tests — throttling and burst handling
+
 ## Session Handoff (2026-03-31 15:30 UTC)
 
 ### Done this session (22 of 24 tasks complete)
