@@ -17,10 +17,8 @@ services:
     restart: unless-stopped
 
   coconut:
-    image: python:3.12-slim
-    working_dir: /app
+    build: .
     volumes:
-      - .:/app:ro
       - coconut-data:/app/data
     env_file:
       - coconut.env
@@ -28,7 +26,6 @@ services:
       - COCONUT_ADAPTER_SIGNAL_ENABLED=true
       - COCONUT_SIGNAL_CLI_URL=http://signal-api:8080
       - COCONUT_DATA_DIR=/app/data
-    command: python3 coconut.py
     depends_on:
       - signal-api
     restart: unless-stopped
