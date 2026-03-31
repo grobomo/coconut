@@ -14,6 +14,7 @@ import urllib.request
 import urllib.parse
 
 from adapters.base import BaseAdapter, Message
+from core.quotes import strip_html, resolve_teams_chain
 
 SCOPES = 'Chat.Read Chat.ReadWrite User.Read offline_access'
 
@@ -84,14 +85,8 @@ class TeamsAdapter(BaseAdapter):
         with urllib.request.urlopen(req, timeout=30) as resp:
             return json.loads(resp.read())
 
-    @staticmethod
-    def _strip_html(html):
-        text = re.sub(r'<attachment[^>]*></attachment>', '', html)
-        text = re.sub(r'<[^>]+>', '', text)
-        return text.strip().replace('&nbsp;', ' ').replace('&amp;', '&')
-
     def poll(self):
-        """Fetch new messages from Teams chat."""
+        """Fetch new messages from Teams chat with quote chain resolution."""
         try:
             path = f'/me/chats/{self.chat_id}/messages?$top=10&$orderby=createdDateTime desc'
             data = self._graph_get(path)
@@ -111,16 +106,31 @@ class TeamsAdapter(BaseAdapter):
             if sender_info and sender_info.get('user'):
                 sender = sender_info['user'].get('displayName', '')
 
-            text = self._strip_html(body)
+            text = strip_html(body)
             if not text:
                 continue
+
+            # Resolve quote chain for threaded context
+            quoted_context = []
+            if item.get('attachments'):
+                try:
+                    chain = resolve_teams_chain(
+                        self.chat_id, item, self._graph_get)
+                    # Exclude the current message from chain (it's the last one)
+                    quoted_context = chain[:-1] if len(chain) > 1 else []
+                except Exception:
+                    pass
+
+            raw = dict(item)
+            if quoted_context:
+                raw['_quoted_context'] = quoted_context
 
             messages.append(Message(
                 message_id=msg_id,
                 sender=sender,
                 text=text,
                 timestamp=item.get('createdDateTime', ''),
-                raw=item,
+                raw=raw,
             ))
 
         # Prune seen set
