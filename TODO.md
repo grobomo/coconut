@@ -55,7 +55,9 @@ Extracted and modularized from:
 - [x] T034: Conversation memory — already works via cache.json persistence (no code needed)
 - [x] T035: CLI interactive mode — msvcrt.kbhit() on Windows, threaded pipe reader
 - [x] T036: Fix multi-adapter test hang — CLI poll blocks on pipe stdin in test harness
-- [ ] T037: Update docs — CLAUDE.md, README, TODO with new modules and test counts
+- [x] T037: Update docs — CLAUDE.md, README, TODO with new modules and test counts
+- [ ] T038: Slack adapter — Socket Mode + Web API for replies (stdlib only)
+- [ ] T039: Slack adapter E2E tests
 
 ## Blocked (external deps)
 - [ ] T011: Live Signal test — needs user phone number + EP group ID
