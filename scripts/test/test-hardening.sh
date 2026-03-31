@@ -183,17 +183,15 @@ assert MAX_CLASSIFY_CONTEXT >= 10, f'Context too small: {MAX_CLASSIFY_CONTEXT}'
 print(f'  PASS: classifier context limited to {MAX_CLASSIFY_CONTEXT} messages')
 " 2>/dev/null || echo "  SKIP: T018 not yet implemented"
 
-# Test 6: Health check CLI (T019)
-echo "Test 6: Health check CLI..."
+# Test 6: Health check module
+echo "Test 6: Health check module..."
 python3 -c "
-import subprocess, os, json, shutil
+import os, json, shutil, time
 
-# Create health file
 test_dir = '/tmp/coconut-health-test'
 shutil.rmtree(test_dir, ignore_errors=True)
 os.makedirs(test_dir, exist_ok=True)
 
-import time
 health = {
     'status': 'running',
     'last_heartbeat_epoch': int(time.time()),
@@ -204,12 +202,10 @@ health = {
 with open(os.path.join(test_dir, 'health.json'), 'w') as f:
     json.dump(health, f)
 
-# Test health check
 from core.health import HealthWriter
 hw = HealthWriter(data_dir=test_dir)
 assert hw.check() == 0, 'Expected healthy'
 
-# Simulate stale
 health['last_heartbeat_epoch'] = int(time.time()) - 600
 with open(os.path.join(test_dir, 'health.json'), 'w') as f:
     json.dump(health, f)
@@ -217,6 +213,54 @@ assert hw.check() == 1, 'Expected stale'
 
 shutil.rmtree(test_dir, ignore_errors=True)
 print('  PASS: health check detects fresh and stale states')
+"
+
+# Test 7: Health check CLI mode (T019)
+echo "Test 7: Health check CLI --health flag..."
+python3 -c "
+import subprocess, os, json, shutil, time
+
+test_dir = '/tmp/coconut-health-cli'
+shutil.rmtree(test_dir, ignore_errors=True)
+os.makedirs(test_dir, exist_ok=True)
+
+# Write a fresh health file
+health = {
+    'status': 'running',
+    'last_heartbeat_epoch': int(time.time()),
+    'started_at': '2026-01-01T00:00:00Z',
+    'processed': 10,
+    'errors': 1,
+}
+with open(os.path.join(test_dir, 'health.json'), 'w') as f:
+    json.dump(health, f)
+
+# Run coconut.py --health
+env = dict(os.environ, COCONUT_DATA_DIR=test_dir)
+result = subprocess.run(
+    ['python3', 'coconut.py', '--health'],
+    capture_output=True, text=True, env=env
+)
+assert result.returncode == 0, f'Expected exit 0, got {result.returncode}: {result.stderr}'
+output = json.loads(result.stdout)
+assert output['status'] == 'running'
+assert output['processed'] == 10
+
+# Stale health file
+health['last_heartbeat_epoch'] = int(time.time()) - 600
+with open(os.path.join(test_dir, 'health.json'), 'w') as f:
+    json.dump(health, f)
+
+result2 = subprocess.run(
+    ['python3', 'coconut.py', '--health'],
+    capture_output=True, text=True, env=env
+)
+assert result2.returncode == 1, f'Expected exit 1 for stale, got {result2.returncode}'
+output2 = json.loads(result2.stdout)
+assert output2['status'] == 'stale'
+
+shutil.rmtree(test_dir, ignore_errors=True)
+print('  PASS: --health exits 0 for fresh, 1 for stale')
 "
 
 echo ""
