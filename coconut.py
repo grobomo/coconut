@@ -14,9 +14,11 @@ import urllib.request
 import urllib.error
 
 from core import config, cache, classifier, llm
+from core.health import HealthWriter
 from adapters.base import Message
 
 _shutdown = False
+_log_file = None
 
 
 def _handle_signal(signum, frame):
@@ -33,7 +35,23 @@ def _log(level, msg, **fields):
         'component': 'coconut',
     }
     entry.update(fields)
-    print(json.dumps(entry, separators=(',', ':')), flush=True)
+    line = json.dumps(entry, separators=(',', ':'))
+    print(line, flush=True)
+    if _log_file:
+        try:
+            _log_file.write(line + '\n')
+            _log_file.flush()
+        except OSError:
+            pass
+
+
+def _init_log_file(data_dir):
+    global _log_file
+    log_path = os.environ.get('COCONUT_LOG_FILE', '')
+    if not log_path:
+        log_path = os.path.join(data_dir, 'coconut.log')
+    os.makedirs(os.path.dirname(log_path) or '.', exist_ok=True)
+    _log_file = open(log_path, 'a')
 
 
 def _load_adapters(cfg):
@@ -57,7 +75,6 @@ def _load_adapters(cfg):
 def _relay_message(cfg, message, classification):
     """Route a RELAY message to external CCC."""
     url = cfg.get('relay_url', '')
-    token = cfg.get('relay_token', '')
     if not url:
         _log('warn', 'RELAY message but no relay_url configured', text=message.text[:80])
         return
@@ -72,8 +89,9 @@ def _relay_message(cfg, message, classification):
 
     req = urllib.request.Request(url, data=payload, method='POST')
     req.add_header('Content-Type', 'application/json')
-    if token:
-        req.add_header('Authorization', f'Bearer {token}')
+    relay_token = cfg.get('relay_token', '')
+    if relay_token:
+        req.add_header('Authorization', f'Bearer {relay_token}')
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
             resp.read()
@@ -87,8 +105,10 @@ def main():
     signal.signal(signal.SIGINT, _handle_signal)
 
     cfg = config.load()
-    adapters = _load_adapters(cfg)
+    data_dir = os.environ.get('COCONUT_DATA_DIR', 'data')
+    _init_log_file(data_dir)
 
+    adapters = _load_adapters(cfg)
     if not adapters:
         _log('error', 'No adapters enabled. Set COCONUT_ADAPTER_*_ENABLED=true')
         sys.exit(1)
@@ -99,31 +119,35 @@ def main():
         sys.exit(1)
 
     msg_cache = cache.MessageCache(
-        data_dir=os.environ.get('COCONUT_DATA_DIR', 'data'),
+        data_dir=data_dir,
         cache_size=cfg.get('cache_size', 50),
     )
 
+    health = HealthWriter(data_dir=data_dir)
     poll_interval = cfg.get('poll_interval', 3)
     model = cfg.get('model', 'claude-haiku-4-5-20251001')
-    system_prompt = llm.build_system_prompt(cfg)
 
     _log('info', 'Coconut starting',
          adapters=[a.name for a in adapters],
          poll_interval=poll_interval,
          model=model)
 
-    cycle = 0
     while not _shutdown:
-        cycle += 1
         new_messages = []
+        # Track which adapter produced which messages
+        msg_source = {}
 
-        # Poll all adapters
         for adapter in adapters:
             try:
                 msgs = adapter.poll()
+                for m in msgs:
+                    msg_source[m.message_id] = adapter
                 new_messages.extend(msgs)
             except Exception as e:
                 _log('error', f'Poll error ({adapter.name})', error=str(e))
+                health.errors += 1
+
+        health.update(extra={'usage': llm.get_usage()})
 
         if not new_messages:
             if not _shutdown:
@@ -147,15 +171,15 @@ def main():
             classifications = classifier.classify(context, api_key, model)
         except Exception as e:
             _log('error', 'Classification failed', error=str(e))
+            health.errors += 1
             classifications = []
 
-        # Build lookup
         class_map = {c.get('message_id'): c for c in classifications}
 
-        # Process each new message
         for msg in new_messages:
             cl = class_map.get(msg.message_id, {})
             action = cl.get('classification', 'IGNORE')
+            source_adapter = msg_source.get(msg.message_id)
 
             _log('info', 'Classified',
                  message_id=msg.message_id,
@@ -163,8 +187,7 @@ def main():
                  action=action,
                  reason=cl.get('reason', ''))
 
-            if action == 'REPLY':
-                # Build prompt with conversation context
+            if action == 'REPLY' and source_adapter:
                 recent = context[:10]
                 ctx_text = '\n'.join(
                     f"  {m.get('sender', '?')}: {m.get('text', '')}"
@@ -177,26 +200,31 @@ def main():
                 )
 
                 try:
-                    # Refresh system prompt with current time
                     system_prompt = llm.build_system_prompt(cfg)
                     response = llm.chat(api_key, system_prompt, prompt,
                                         model=model,
                                         max_tokens=cfg.get('max_tokens', 512))
-                    # Send reply through the adapter that received it
-                    for adapter in adapters:
-                        adapter.send(response)
+                    # Reply only through the adapter that received the message
+                    source_adapter.send(response)
+                    health.processed += 1
                     _log('info', 'Replied', sender=msg.sender,
+                         adapter=source_adapter.name,
                          usage=llm.get_usage())
                 except Exception as e:
                     _log('error', 'Reply failed', error=str(e))
+                    health.errors += 1
 
             elif action == 'RELAY' and cfg.get('relay_enabled'):
                 _relay_message(cfg, msg, cl)
+                health.processed += 1
 
         if not _shutdown:
             time.sleep(poll_interval)
 
+    health.update(extra={'status': 'stopped', 'usage': llm.get_usage()})
     _log('info', 'Coconut stopped', usage=llm.get_usage())
+    if _log_file:
+        _log_file.close()
 
 
 if __name__ == '__main__':
