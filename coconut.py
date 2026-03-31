@@ -227,5 +227,27 @@ def main():
         _log_file.close()
 
 
+def health_check():
+    """Check health status for K8s liveness probes. Exit 0=healthy, 1=stale."""
+    data_dir = os.environ.get('COCONUT_DATA_DIR', 'data')
+    from core.health import HealthWriter
+    hw = HealthWriter(data_dir=data_dir)
+    status = hw.check()
+    if status == 0:
+        health_file = os.path.join(data_dir, 'health.json')
+        try:
+            with open(health_file) as f:
+                health = json.load(f)
+            print(json.dumps(health, indent=2))
+        except (FileNotFoundError, json.JSONDecodeError):
+            print('{"status": "healthy"}')
+    else:
+        print('{"status": "stale"}')
+    sys.exit(status)
+
+
 if __name__ == '__main__':
-    main()
+    if '--health' in sys.argv:
+        health_check()
+    else:
+        main()

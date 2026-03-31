@@ -29,11 +29,20 @@ class TeamsAdapter(BaseAdapter):
         self.chat_id = config.get('teams_chat_id', '')
         self.tenant_id = config.get('teams_tenant_id', '')
         self.client_id = config.get('teams_client_id', '')
+        self._token_file = self._find_token_file(config)
         self._refresh_token = self._load_refresh_token(config)
         self._access_token = ''
         self._token_expires = 0
         self._last_poll_ts = '1970-01-01T00:00:00Z'
         self._seen_ids = set()
+
+    def _find_token_file(self, config):
+        """Determine token file path for persistence."""
+        token_val = config.get('teams_refresh_token', '')
+        if token_val and os.path.isfile(token_val):
+            return token_val
+        data_dir = os.environ.get('COCONUT_DATA_DIR', 'data')
+        return os.path.join(data_dir, 'teams_refresh_token')
 
     def _load_refresh_token(self, config):
         """Load refresh token from env var or file."""
@@ -41,7 +50,19 @@ class TeamsAdapter(BaseAdapter):
         if token and os.path.isfile(token):
             with open(token) as f:
                 return f.read().strip()
+        if not token and os.path.isfile(self._token_file):
+            with open(self._token_file) as f:
+                return f.read().strip()
         return token
+
+    def _persist_refresh_token(self, new_token):
+        """Save rotated refresh token to file so restarts don't lose it."""
+        if not new_token or new_token == self._refresh_token:
+            return
+        self._refresh_token = new_token
+        os.makedirs(os.path.dirname(self._token_file) or '.', exist_ok=True)
+        with open(self._token_file, 'w') as f:
+            f.write(new_token)
 
     def _get_access_token(self):
         """Refresh the access token if expired."""
@@ -62,7 +83,9 @@ class TeamsAdapter(BaseAdapter):
         with urllib.request.urlopen(req, timeout=30) as resp:
             result = json.loads(resp.read())
 
-        self._refresh_token = result.get('refresh_token', self._refresh_token)
+        new_refresh = result.get('refresh_token', '')
+        if new_refresh:
+            self._persist_refresh_token(new_refresh)
         self._access_token = result['access_token']
         self._token_expires = time.time() + result.get('expires_in', 3600)
         return self._access_token
