@@ -194,8 +194,33 @@ cb_server.shutdown()
 print('  PASS: outbound reply delivered to callback URL')
 "
 
-# Test 7: Config loading includes webhook fields
-echo "Test 7: Config includes webhook fields..."
+# Test 7: Body size limit (413 for oversized payloads)
+echo "Test 7: Body size limit..."
+python3 -c "
+import urllib.request, urllib.error, time
+from adapters.webhook_adapter import WebhookAdapter, MAX_BODY_SIZE
+
+cfg = {'webhook_port': 18996, 'webhook_path': '/webhook/inbound'}
+adapter = WebhookAdapter(cfg)
+time.sleep(0.2)
+
+# Oversized payload — should get 413
+big_body = b'x' * (MAX_BODY_SIZE + 1)
+req = urllib.request.Request('http://127.0.0.1:18996/webhook/inbound', data=big_body, method='POST')
+req.add_header('Content-Type', 'application/json')
+req.add_header('Content-Length', str(len(big_body)))
+try:
+    urllib.request.urlopen(req, timeout=5)
+    assert False, 'should have gotten 413'
+except urllib.error.HTTPError as e:
+    assert e.code == 413, f'expected 413, got {e.code}'
+
+adapter.shutdown()
+print('  PASS: oversized payload rejected with 413')
+"
+
+# Test 8: Config loading includes webhook fields
+echo "Test 8: Config includes webhook fields..."
 python3 -c "
 import os
 os.environ['COCONUT_ADAPTER_WEBHOOK_ENABLED'] = 'true'

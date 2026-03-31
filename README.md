@@ -4,7 +4,7 @@ Reusable AI chat assistant that monitors messaging platforms, classifies message
 
 ## Features
 
-- **Multi-platform** — Signal, Teams, CLI (extensible adapter system)
+- **Multi-platform** — Signal, Teams, Webhook, CLI (extensible adapter system)
 - **Semantic classification** — LLM-powered REPLY/RELAY/IGNORE routing
 - **Zero dependencies** — Python stdlib only, runs anywhere with Python 3.10+
 - **Docker ready** — single image, built-in health checks
@@ -37,11 +37,13 @@ core/
   cache.py           Rolling message cache with archiving
   health.py          Health writer, metrics, cost estimation
   quotes.py          Teams quote chain resolution
+  ratelimit.py       Per-adapter sliding window rate limiter
 adapters/
   base.py            Abstract adapter interface (poll/send)
   signal_adapter.py  Signal via signal-cli REST API
   teams_adapter.py   Teams via MS Graph API
   cli_adapter.py     stdin/stdout for testing
+  webhook_adapter.py HTTP inbound/outbound with HMAC auth
 ```
 
 ### Message Flow
@@ -65,6 +67,11 @@ All settings via environment variables. See [`config/coconut.env.example`](confi
 | `COCONUT_ADAPTER_SIGNAL_ENABLED` | false | Enable Signal adapter |
 | `COCONUT_ADAPTER_TEAMS_ENABLED` | false | Enable Teams adapter |
 | `COCONUT_ADAPTER_CLI_ENABLED` | false | Enable CLI adapter |
+| `COCONUT_ADAPTER_WEBHOOK_ENABLED` | false | Enable webhook adapter |
+| `COCONUT_WEBHOOK_PORT` | 8000 | Webhook listen port |
+| `COCONUT_WEBHOOK_SECRET` | (none) | HMAC-SHA256 shared secret |
+| `COCONUT_RATE_LIMIT_MAX` | 10 | Max replies per window per adapter |
+| `COCONUT_RATE_LIMIT_WINDOW` | 60 | Rate limit window in seconds |
 
 ## Health Check
 
@@ -88,6 +95,8 @@ python coconut.py --health
 bash scripts/test/test-coconut.sh        # Core E2E (7 tests)
 bash scripts/test/test-multi-adapter.sh  # Multi-adapter (6 tests)
 bash scripts/test/test-hardening.sh      # Retry, metrics, health (8 tests)
+bash scripts/test/test-webhook.sh        # Webhook adapter (7 tests)
+bash scripts/test/test-ratelimit.sh      # Rate limiter (8 tests)
 bash scripts/test/test-docker.sh         # Dockerfile validation
 ```
 
