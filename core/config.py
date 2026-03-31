@@ -74,6 +74,10 @@ def load(env_file=None):
 
         'cli_enabled': _bool('COCONUT_ADAPTER_CLI_ENABLED'),
 
+        'slack_enabled': _bool('COCONUT_ADAPTER_SLACK_ENABLED'),
+        'slack_bot_token': _get('COCONUT_SLACK_BOT_TOKEN', ''),
+        'slack_channel_id': _get('COCONUT_SLACK_CHANNEL_ID', ''),
+
         'webhook_enabled': _bool('COCONUT_ADAPTER_WEBHOOK_ENABLED'),
         'webhook_port': _int('COCONUT_WEBHOOK_PORT', 8000),
         'webhook_path': _get('COCONUT_WEBHOOK_PATH', '/webhook/inbound'),

@@ -72,6 +72,11 @@ def _load_adapters(cfg):
         from adapters.cli_adapter import CLIAdapter
         adapters.append(CLIAdapter(cfg))
         _log('info', 'CLI adapter enabled')
+    if cfg.get('slack_enabled'):
+        from adapters.slack_adapter import SlackAdapter
+        adapters.append(SlackAdapter(cfg))
+        _log('info', 'Slack adapter enabled',
+             channel=cfg.get('slack_channel_id', ''))
     if cfg.get('webhook_enabled'):
         from adapters.webhook_adapter import WebhookAdapter
         adapters.append(WebhookAdapter(cfg))
