@@ -32,25 +32,10 @@ Extracted and modularized from:
 - [ ] T012: CCC fleet deploy — deploy coconut on AWS CCC worker as persistent service
 - [x] T013: RONE poller health check — scripts/k8s/rone-poller-health.sh ready (VPN needed to run)
 - [x] T014: Multi-adapter — scripts/test/test-multi-adapter.sh (6/6 tests passing)
-
-## Session Handoff (2026-03-31 14:55 UTC)
-
-### Done this session
-- T013: Created `scripts/k8s/rone-poller-health.sh` — auto-discovers kubeconfig, checks pods/logs
-- T014: Created `scripts/test/test-multi-adapter.sh` — 6 E2E tests proving multi-adapter works
-  - Concurrent loading, message routing to source adapter, poll isolation, format consistency, cache dedup
-- All existing tests still pass (7/7 E2E + 6/6 multi-adapter)
-
-### Blockers remaining
-- T011 needs: user's Signal phone number + EP group ID
-- T012 needs: CCC fleet dispatcher reconfigured (hardcoded to altarr/boothapp)
-- T013 health check created but VPN required to actually verify RONE pod status
-
-### Architecture decisions made
-- Python stdlib only (zero deps) so it runs anywhere without pip
-- signal-cli-rest-api via Docker (bbernhard/signal-cli-rest-api) for Signal integration
-- Adapters are plugins — add new platforms by implementing poll()/send()
-- Every value from env vars with COCONUT_* prefix
-- Secret scan CI workflow catches hardcoded values before push
+- [ ] T015: Spec and tasks for hardening (005-harden-coconut)
+- [ ] T016: LLM retry with exponential backoff on transient errors
+- [ ] T017: Teams refresh token persistence
+- [ ] T018: Classifier context window optimization
+- [ ] T019: Health check CLI mode for K8s liveness probes
 
 ## Status: In Progress
