@@ -25,7 +25,7 @@ Extracted and modularized from:
 - [x] T005: Deploy script — single `scripts/deploy.sh` that launches coconut on CCC
 - [x] T006: System prompt & persona — configurable identity, domain knowledge (TrendAI Technical Advisor)
 - [x] T007: E2E test — scripts/test/test-coconut.sh exercises full pipeline with CLI adapter
-- [x] T008: Signal deployment — docker-compose.yml, signal-register.sh, signal-list-groups.sh (merged to main)
+- [x] T008: Signal deployment — docker-compose.yml, signal-register.sh, signal-list-groups.sh
 - [x] T009: Harden — health writer, log-to-file, fix reply-to-all-adapters bug
 - [x] T010: Quote chain resolution — port from rone-teams-poller for threaded conversation context
 - [ ] T011: Live Signal test — register a phone number, join EP group, test real conversation flow
@@ -44,30 +44,40 @@ Extracted and modularized from:
 - [x] T024: README.md — quickstart, architecture, config reference
 - [x] T025: Spec and tasks for webhook adapter + rate limiting (007-webhook-ratelimit)
 - [x] T026: Webhook adapter — HTTP server for inbound/outbound messages
-- [x] T027: Webhook adapter E2E tests (7/7 passing)
+- [x] T027: Webhook adapter E2E tests (8/8 passing)
 - [x] T028: Per-adapter rate limiter — sliding window, configurable via env vars
 - [x] T029: Rate limit tests (8/8 passing)
+- [x] T030: Harden webhook (64KB body limit, graceful shutdown) and update README
+- [x] T031: GitHub Actions CI — test workflow + secret scan fix
+- [x] T032: Fix secret scan false positive in README
 
-## Session Handoff (2026-03-31 20:00 UTC)
+## Session Handoff (2026-03-31 21:30 UTC)
 
-### Done this session (27 of 29 tasks complete)
-- T025-T029: Webhook adapter + rate limiter (spec 007)
-  - Webhook adapter: HTTP server, HMAC-SHA256 auth, callback URLs, health endpoint
+### Done this session (30 of 32 tasks complete)
+- T025-T029: Webhook adapter + per-adapter rate limiter (spec 007)
+  - Webhook: HTTP server, HMAC-SHA256 auth, callback URLs, health endpoint, 64KB body limit
   - Rate limiter: sliding window per adapter, configurable window/max via env vars
   - Integrated into main loop with rate limit stats in health.json
-- 4 PRs merged (#20-#23), all squash-merged to main
-- 37 tests passing across 6 test suites
+- T030: Hardened webhook (body size limit, graceful adapter shutdown on SIGTERM)
+- T031-T032: GitHub Actions CI (test runner + secret scan), both green
+- 10 PRs merged (#20-#29), all squash-merged to main
+- 38 tests passing across 6 test suites, CI green on GitHub
+- Cleaned up 20+ stale remote branches
+
+### CI Status
+- `.github/workflows/test.yml` — runs all 6 test suites on push/PR to main (passing)
+- `.github/workflows/secret-scan.yml` — scans for API keys, cloud creds, hardcoded IPs, PII (passing)
 
 ### Blockers (unchanged)
 - **T011**: Needs user Signal phone number + EP group ID to register
 - **T012**: CCC fleet dispatcher hardcoded to altarr/boothapp — needs reconfiguration
-- **T013 execution**: Health check script ready but VPN required to reach RONE K8s
 
 ### Next priorities (by impact)
-1. **T011 unblock**: Get a Signal phone number (Google Voice, Twilio, or spare SIM) to test real conversation flow end-to-end.
-2. **T012 unblock**: Modify CCC fleet dispatcher repo whitelist to include grobomo/coconut, then deploy.
-3. **Teams adapter live test**: Connect to hackathon chat and verify message flow.
-4. **Discord adapter**: Similar pattern to webhook, uses Discord bot API.
-5. **Conversation memory**: Persistent context across restarts (beyond cache).
+1. **T011 unblock**: Get a Signal phone number (Google Voice, Twilio, or spare SIM) to test real conversation flow end-to-end
+2. **T012 unblock**: Modify CCC fleet dispatcher repo whitelist to include grobomo/coconut, then deploy
+3. **Teams adapter live test**: Connect to hackathon chat and verify message flow
+4. **Conversation memory**: Persistent context across restarts (beyond rolling cache) — would let coconut recall previous conversations
+5. **Discord adapter**: Similar pattern to webhook, uses Discord bot API — expands platform reach
+6. **Log rotation**: coconut.log grows unbounded — add size-based rotation
 
 ## Status: In Progress
