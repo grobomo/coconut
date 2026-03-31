@@ -38,6 +38,7 @@ core/
   health.py          Health writer, metrics, cost estimation
   quotes.py          Teams quote chain resolution
   ratelimit.py       Per-adapter sliding window rate limiter
+  logrotate.py       Size-based log rotation (5MB default)
 adapters/
   base.py            Abstract adapter interface (poll/send)
   signal_adapter.py  Signal via signal-cli REST API
@@ -72,6 +73,8 @@ All settings via environment variables. See [`config/coconut.env.example`](confi
 | `COCONUT_WEBHOOK_SECRET` | (none) | HMAC-SHA256 shared secret |
 | `COCONUT_RATE_LIMIT_MAX` | 10 | Max replies per window per adapter |
 | `COCONUT_RATE_LIMIT_WINDOW` | 60 | Rate limit window in seconds |
+| `COCONUT_LOG_MAX_BYTES` | 5242880 | Log rotation size threshold (5MB) |
+| `COCONUT_LOG_BACKUPS` | 3 | Number of rotated log backups |
 
 ## Health Check
 
@@ -95,8 +98,9 @@ python coconut.py --health
 bash scripts/test/test-coconut.sh        # Core E2E (7 tests)
 bash scripts/test/test-multi-adapter.sh  # Multi-adapter (6 tests)
 bash scripts/test/test-hardening.sh      # Retry, metrics, health (8 tests)
-bash scripts/test/test-webhook.sh        # Webhook adapter (7 tests)
+bash scripts/test/test-webhook.sh        # Webhook adapter (8 tests)
 bash scripts/test/test-ratelimit.sh      # Rate limiter (8 tests)
+bash scripts/test/test-logrotate.sh      # Log rotation (5 tests)
 bash scripts/test/test-docker.sh         # Dockerfile validation
 ```
 

@@ -12,6 +12,9 @@ core/
   classifier.py     Semantic message classifier (REPLY/RELAY/IGNORE)
   cache.py          Rolling message cache with archiving
   ratelimit.py      Per-adapter sliding window rate limiter
+  logrotate.py      Size-based log rotation (stdlib only)
+  health.py         Health file writer for liveness probes
+  quotes.py         Quote chain resolution for threaded conversations
 adapters/
   base.py           Abstract adapter interface
   signal_adapter.py Signal via signal-cli REST API
