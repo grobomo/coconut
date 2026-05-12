@@ -4,7 +4,7 @@ Reusable AI chat assistant that monitors messaging platforms, classifies message
 
 ## Features
 
-- **Multi-platform** — Signal, Teams, Webhook, CLI (extensible adapter system)
+- **Multi-platform** — Signal, Teams, Slack, Webhook, CLI (extensible adapter system)
 - **Semantic classification** — LLM-powered REPLY/RELAY/IGNORE routing
 - **Zero dependencies** — Python stdlib only, runs anywhere with Python 3.10+
 - **Docker ready** — single image, built-in health checks
@@ -44,6 +44,7 @@ adapters/
   signal_adapter.py  Signal via signal-cli REST API
   teams_adapter.py   Teams via MS Graph API
   cli_adapter.py     stdin/stdout for testing
+  slack_adapter.py   Slack via Web API polling
   webhook_adapter.py HTTP inbound/outbound with HMAC auth
 ```
 
@@ -68,6 +69,9 @@ All settings via environment variables. See [`config/coconut.env.example`](confi
 | `COCONUT_ADAPTER_SIGNAL_ENABLED` | false | Enable Signal adapter |
 | `COCONUT_ADAPTER_TEAMS_ENABLED` | false | Enable Teams adapter |
 | `COCONUT_ADAPTER_CLI_ENABLED` | false | Enable CLI adapter |
+| `COCONUT_ADAPTER_SLACK_ENABLED` | false | Enable Slack adapter |
+| `COCONUT_SLACK_BOT_TOKEN` | (none) | Slack bot token (xoxb-...) |
+| `COCONUT_SLACK_CHANNEL_ID` | (none) | Slack channel ID (C...) |
 | `COCONUT_ADAPTER_WEBHOOK_ENABLED` | false | Enable webhook adapter |
 | `COCONUT_WEBHOOK_PORT` | 8000 | Webhook listen port |
 | `COCONUT_WEBHOOK_SECRET` | (none) | HMAC-SHA256 shared secret |
@@ -100,6 +104,7 @@ bash scripts/test/test-multi-adapter.sh  # Multi-adapter (6 tests)
 bash scripts/test/test-hardening.sh      # Retry, metrics, health (8 tests)
 bash scripts/test/test-webhook.sh        # Webhook adapter (8 tests)
 bash scripts/test/test-ratelimit.sh      # Rate limiter (8 tests)
+bash scripts/test/test-slack.sh           # Slack adapter (8 tests)
 bash scripts/test/test-logrotate.sh      # Log rotation (5 tests)
 bash scripts/test/test-docker.sh         # Dockerfile validation
 ```

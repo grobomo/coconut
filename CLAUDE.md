@@ -20,6 +20,7 @@ adapters/
   signal_adapter.py Signal via signal-cli REST API
   teams_adapter.py  Teams via MS Graph API
   cli_adapter.py    stdin/stdout for testing
+  slack_adapter.py  Slack via Web API polling
   webhook_adapter.py HTTP server for generic integrations
 config/
   coconut.env.example  Example configuration

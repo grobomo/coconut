@@ -1,5 +1,9 @@
 # Coconut — Reusable AI Chat Assistant
 
+## From Publishable Audit (2026-05-11)
+
+- [ ] T-STRIP: PUBLIC REPO — Strip references to internal projects (RONE, hackathon-teams-poller). Generalize .coconut/ mailbox examples to remove project-specific paths.
+
 ## Vision
 Extract Coconut from hackathon26's RONE poller into a standalone, modular AI assistant that:
 - Monitors chat platforms (Signal, Teams) with 3s polling
@@ -56,8 +60,9 @@ Extracted and modularized from:
 - [x] T035: CLI interactive mode — msvcrt.kbhit() on Windows, threaded pipe reader
 - [x] T036: Fix multi-adapter test hang — CLI poll blocks on pipe stdin in test harness
 - [x] T037: Update docs — CLAUDE.md, README, TODO with new modules and test counts
-- [ ] T038: Slack adapter — Socket Mode + Web API for replies (stdlib only)
-- [ ] T039: Slack adapter E2E tests
+- [x] T038: Slack adapter — Web API polling for replies (stdlib only)
+- [x] T039: Slack adapter E2E tests (8/8 passing)
+- [x] T040: Update docs — CLAUDE.md, README, CI workflow for Slack + logrotate
 
 ## Blocked (external deps)
 - [ ] T011: Live Signal test — needs user phone number + EP group ID

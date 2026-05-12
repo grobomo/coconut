@@ -23,5 +23,9 @@ jobs:
         run: bash scripts/test/test-webhook.sh
       - name: Rate limit tests
         run: bash scripts/test/test-ratelimit.sh
+      - name: Slack adapter tests
+        run: bash scripts/test/test-slack.sh
+      - name: Log rotation tests
+        run: bash scripts/test/test-logrotate.sh
       - name: Docker validation
         run: bash scripts/test/test-docker.sh
