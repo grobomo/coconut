@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# T013: RONE poller health check — verify K8s pod is running, show logs
+# T013: K8s poller health check — verify pod is running, show logs
 set -euo pipefail
 
-NAMESPACE="${RONE_NAMESPACE:-hackathon-teams-poller}"
+NAMESPACE="${POLLER_NAMESPACE:-default}"
 KUBECONFIG_PATH="${KUBECONFIG:-$(ls ~/Downloads/*.kubeconfig 2>/dev/null | head -1)}"
 
 if [[ -z "$KUBECONFIG_PATH" ]]; then
-    echo "ERROR: No kubeconfig found. Set KUBECONFIG or download from RONE portal."
+    echo "ERROR: No kubeconfig found. Set KUBECONFIG env var."
     exit 1
 fi
 
